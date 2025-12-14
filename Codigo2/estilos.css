@@ -1,0 +1,961 @@
+/* 
+# Autor: Andrés Hincapie Ruiz (A.HRZ)
+# Fecha de creación: 24 de diciembre de 2024
+# Programa: Árbol de Navidad 3D Interactivo con Three.js
+*/
+
+/* Defino los estilos básicos para el canvas */
+body { 
+    margin: 0; /* Elimino los márgenes del body */
+    font-family: 'Arial', sans-serif;
+    background: white;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+} 
+
+canvas { 
+    display: block; /* Configuro el canvas como bloque */
+}
+
+/* Estilos para el contenedor de imágenes */
+.image-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Contenedor del regalo */
+.gift-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+/* Estilos para las imágenes interactivas - SIN CONTORNOS */
+.interactive-image {
+    max-width: 70vw;
+    max-height: 70vh;
+    width: auto;
+    height: auto;
+    cursor: pointer;
+    transition: all 0.6s ease;
+    border: none;
+    box-shadow: none;
+    border-radius: 0;
+    outline: none;
+    object-fit: contain;
+}
+
+.interactive-image:hover {
+    transform: scale(1.02);
+}
+
+.interactive-image.active {
+    display: block;
+    opacity: 1;
+}
+
+.interactive-image.hidden {
+    display: none;
+    opacity: 0;
+}
+
+/* Animación de pulso para el regalo cerrado */
+.gift-pulse {
+    animation: giftPulse 2s infinite ease-in-out;
+}
+
+@keyframes giftPulse {
+    0%, 100% { 
+        transform: scale(1); 
+    }
+    50% { 
+        transform: scale(1.03); 
+    }
+}
+
+/* Animación de apertura del regalo */
+.gift-opening {
+    animation: giftOpen 1s ease-out forwards;
+}
+
+@keyframes giftOpen {
+    0% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2) rotate(10deg);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(0.8) rotate(0deg);
+        opacity: 0;
+    }
+}
+
+/* Animación de aparición del regalo abierto */
+.gift-revealed {
+    animation: giftReveal 1s ease-out forwards;
+}
+
+@keyframes giftReveal {
+    0% {
+        transform: scale(0.5) rotate(-10deg) translateY(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotate(5deg) translateY(10vh);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(0.8) rotate(0deg) translateY(20vh);
+        opacity: 1;
+    }
+}
+
+/* Animación para mover la imagen 2 hacia abajo cuando aparece la carta */
+.gift-move-down {
+    animation: moveImageDown 0.8s ease-out forwards;
+}
+
+@keyframes moveImageDown {
+    0% {
+        transform: scale(0.8) translateY(20vh);
+    }
+    100% {
+        transform: scale(0.7) translateY(28vh);
+    }
+}
+
+/* Animación de sacudida para la segunda imagen */
+.shake-me {
+    animation: shakeImage 1.5s infinite ease-in-out;
+}
+
+@keyframes shakeImage {
+    0%, 100% { 
+        transform: rotate(0deg) scale(1); 
+    }
+    25% { 
+        transform: rotate(-3deg) scale(1.02); 
+    }
+    75% { 
+        transform: rotate(3deg) scale(1.02); 
+    }
+}
+
+/* Mensaje de "Tócame para abrir" */
+.touch-message {
+    position: absolute;
+    bottom: -80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px 25px;
+    border-radius: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    border: 2px solid #d4af37;
+    animation: messageShake 1.5s infinite ease-in-out;
+    z-index: 10;
+}
+
+.touch-message.hidden {
+    display: none;
+}
+
+.message-text {
+    color: #c41e3a;
+    font-weight: bold;
+    font-size: 1.2em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Animación de sacudida para el mensaje */
+@keyframes messageShake {
+    0%, 100% { 
+        transform: translateX(-50%) rotate(0deg); 
+    }
+    25% { 
+        transform: translateX(-50%) rotate(-2deg) scale(1.05); 
+    }
+    75% { 
+        transform: translateX(-50%) rotate(2deg) scale(1.05); 
+    }
+}
+
+/* Contenedor de confeti/serpentina */
+.confetti-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+}
+
+/* Partículas de confeti */
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #ff6b6b;
+    animation: confettiFall 3s linear forwards;
+}
+
+.confetti:nth-child(2n) { background: #4ecdc4; }
+.confetti:nth-child(3n) { background: #45b7d1; }
+.confetti:nth-child(4n) { background: #f9ca24; }
+.confetti:nth-child(5n) { background: #6c5ce7; }
+.confetti:nth-child(6n) { background: #a29bfe; }
+
+@keyframes confettiFall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* Serpentina */
+.streamer {
+    position: absolute;
+    width: 4px;
+    height: 30px;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    animation: streamerFall 2.5s linear forwards;
+}
+
+@keyframes streamerFall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* Estilos para la carta de Navidad */
+.christmas-card {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 8vh;
+    z-index: 1000;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+    box-sizing: border-box;
+}
+
+.christmas-card .card-content {
+    pointer-events: all;
+}
+
+.christmas-card.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.card-content {
+    background: linear-gradient(145deg, #ffffff, #f0f8ff);
+    padding: 40px;
+    border-radius: 20px;
+    text-align: center;
+    width: 90vw;
+    max-width: 500px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    border: 3px solid #d4af37;
+    animation: cardAppearFromGift 1s ease-out;
+    box-sizing: border-box;
+}
+
+@keyframes cardAppearFromGift {
+    0% {
+        transform: scale(0.3) translateY(25vh);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(0.7) translateY(12vh);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+.card-content h2 {
+    color: #c41e3a;
+    font-size: 2.5em;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card-content p {
+    color: #2c5530;
+    font-size: 1.2em;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.card-decoration {
+    font-size: 2em;
+    margin: 20px 0;
+    animation: sparkle 2s infinite;
+}
+
+@keyframes sparkle {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+.close-btn {
+    background: linear-gradient(145deg, #c41e3a, #a01729);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 25px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.close-btn:hover {
+    background: linear-gradient(145deg, #a01729, #8b1420);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Pista de clic */
+.click-hint {
+    margin-top: 15px;
+    font-size: 1em;
+    color: #c41e3a;
+    font-weight: bold;
+    animation: hintPulse 2s infinite ease-in-out;
+}
+
+@keyframes hintPulse {
+    0%, 100% { 
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+/* ==
+=== RESPONSIVE DESIGN PARA MÓVILES ===== */
+
+/* Estilos para pantallas pequeñas (móviles) */
+@media screen and (max-width: 768px) {
+    /* Contenedor optimizado para móviles */
+    .image-container {
+        padding: 10px;
+        min-height: 100vh;
+        min-height: 100dvh; /* Altura dinámica del viewport */
+    }
+
+    /* Imágenes optimizadas para móviles */
+    .interactive-image {
+        max-width: 90vw;
+        max-height: 75vh;
+        max-height: 75dvh;
+        width: auto;
+        height: auto;
+        min-width: 280px;
+    }
+
+    /* Ajustes para el efecto de movimiento en móviles */
+    @keyframes giftReveal {
+        0% {
+            transform: scale(0.5) rotate(-10deg) translateY(0);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.1) rotate(5deg) translateY(5vh);
+            opacity: 0.8;
+        }
+        100% {
+            transform: scale(0.8) rotate(0deg) translateY(12vh);
+            opacity: 1;
+        }
+    }
+
+    @keyframes moveImageDown {
+        0% {
+            transform: scale(0.8) translateY(12vh);
+        }
+        100% {
+            transform: scale(0.6) translateY(20vh);
+        }
+    }
+
+    @keyframes cardAppearFromGift {
+        0% {
+            transform: scale(0.3) translateY(25vh);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(0.7) translateY(12vh);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* Carta optimizada para móviles */
+    .christmas-card {
+        padding: 0;
+        padding-top: 3vh;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .card-content {
+        padding: 20px 15px;
+        margin: 0;
+        width: 95vw;
+        max-width: 95vw;
+        max-height: 70vh;
+        max-height: 70dvh;
+        overflow-y: auto;
+        border-radius: 12px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+        box-sizing: border-box;
+    }
+
+    .card-content h2 {
+        font-size: 2em;
+        margin-bottom: 15px;
+        line-height: 1.2;
+    }
+
+    .card-content p {
+        font-size: 1em;
+        line-height: 1.4;
+        margin-bottom: 10px;
+    }
+
+    .card-decoration {
+        font-size: 1.6em;
+        margin: 12px 0;
+    }
+
+    /* Confeti optimizado para móviles */
+    .confetti {
+        width: 8px;
+        height: 8px;
+    }
+
+    .streamer {
+        width: 3px;
+        height: 25px;
+    }
+
+    /* Pulso más visible en móviles */
+    @keyframes giftPulse {
+        0%, 100% { 
+            transform: scale(1); 
+        }
+        50% { 
+            transform: scale(1.08); 
+        }
+    }
+}
+
+/* Estilos para pantallas muy pequeñas (móviles pequeños) */
+@media screen and (max-width: 480px) {
+    /* Imágenes optimizadas para móviles pequeños */
+    .interactive-image {
+        max-width: 95vw;
+        max-height: 70vh;
+        max-height: 70dvh;
+        min-width: 250px;
+    }
+
+    /* Carta optimizada para móviles pequeños */
+    .card-content {
+        padding: 18px 12px;
+        margin: 0;
+        width: 98vw;
+        max-width: 98vw;
+        max-height: 65vh;
+        max-height: 65dvh;
+        box-sizing: border-box;
+    }
+
+    .card-content h2 {
+        font-size: 1.6em;
+        margin-bottom: 10px;
+        line-height: 1.1;
+    }
+
+    .card-content p {
+        font-size: 0.9em;
+        line-height: 1.3;
+        margin-bottom: 8px;
+    }
+
+    .card-decoration {
+        font-size: 1.3em;
+        margin: 10px 0;
+    }
+
+    /* Ajustes de animación para móviles pequeños */
+    @keyframes moveImageDown {
+        0% {
+            transform: scale(0.8) translateY(12vh);
+        }
+        100% {
+            transform: scale(0.5) translateY(18vh);
+        }
+    }
+}
+
+/* Estilos para pantallas en orientación horizontal (landscape) en móviles */
+@media screen and (max-width: 768px) and (orientation: landscape) {
+    .image-container {
+        padding: 5px;
+    }
+
+    .interactive-image {
+        max-width: 60vw;
+        max-height: 85vh;
+        max-height: 85dvh;
+    }
+
+    .christmas-card {
+        padding-top: 2vh;
+        align-items: flex-start;
+    }
+
+    .card-content {
+        padding: 15px 20px;
+        width: 90vw;
+        max-width: 90vw;
+        max-height: 85vh;
+        max-height: 85dvh;
+        box-sizing: border-box;
+    }
+
+    .card-content h2 {
+        font-size: 1.5em;
+        margin-bottom: 8px;
+    }
+
+    .card-content p {
+        font-size: 0.85em;
+        line-height: 1.2;
+        margin-bottom: 6px;
+    }
+
+    .card-decoration {
+        font-size: 1.2em;
+        margin: 8px 0;
+    }
+
+    /* Ajustes de animación para landscape */
+    @keyframes giftReveal {
+        0% {
+            transform: scale(0.5) rotate(-10deg) translateY(0);
+            opacity: 0;
+        }
+        50% {
+            transform: scale(1.1) rotate(5deg) translateY(3vh);
+            opacity: 0.8;
+        }
+        100% {
+            transform: scale(0.7) rotate(0deg) translateY(8vh);
+            opacity: 1;
+        }
+    }
+
+    @keyframes moveImageDown {
+        0% {
+            transform: scale(0.7) translateY(8vh);
+        }
+        100% {
+            transform: scale(0.5) translateY(15vh);
+        }
+    }
+}
+
+/* Mejoras para touch en móviles */
+@media (hover: none) and (pointer: coarse) {
+    /* Área de toque más grande */
+    .interactive-image {
+        cursor: default;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .christmas-card {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Animaciones más suaves en móviles */
+    .interactive-image:active {
+        transform: scale(0.98);
+    }
+
+    /* Pulso más visible en móviles */
+    @keyframes giftPulse {
+        0%, 100% { 
+            transform: scale(1); 
+        }
+        50% { 
+            transform: scale(1.05); 
+        }
+    }
+}
+
+/* ===== MENSAJE DE BIENVENIDA ===== */
+.welcome-message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px 30px;
+    border-radius: 25px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: 3px solid #d4af37;
+    animation: welcomeAppear 1s ease-out, welcomePulse 3s infinite ease-in-out 1s;
+}
+
+.welcome-message.hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+    transition: all 0.5s ease;
+}
+
+.welcome-text {
+    color: #c41e3a;
+    font-size: 1.8em;
+    margin: 0 0 10px 0;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    font-weight: bold;
+}
+
+.welcome-subtitle {
+    color: #2c5530;
+    font-size: 1.1em;
+    margin: 0;
+    font-style: italic;
+}
+
+@keyframes welcomeAppear {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-30px) scale(0.8);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+    }
+}
+
+@keyframes welcomePulse {
+    0%, 100% { 
+        transform: translateX(-50%) scale(1);
+    }
+    50% { 
+        transform: translateX(-50%) scale(1.05);
+    }
+}
+
+/* Responsive para el mensaje de bienvenida */
+@media screen and (max-width: 768px) {
+    .welcome-message {
+        top: 15px;
+        padding: 15px 20px;
+        margin: 0 10px;
+        max-width: 90vw;
+    }
+
+    .welcome-text {
+        font-size: 1.4em;
+        margin-bottom: 8px;
+    }
+
+    .welcome-subtitle {
+        font-size: 1em;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .welcome-message {
+        top: 10px;
+        padding: 12px 15px;
+        margin: 0 5px;
+    }
+
+    .welcome-text {
+        font-size: 1.2em;
+        margin-bottom: 6px;
+    }
+
+    .welcome-subtitle {
+        font-size: 0.9em;
+    }
+}/* ====
+= TEXTO CERCA DEL REGALO ===== */
+.gift-hint {
+    position: fixed;
+    bottom: 8vh;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    z-index: 1001;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 12px 20px;
+    border-radius: 20px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    border: 2px solid #d4af37;
+    animation: giftHintPulse 2s infinite ease-in-out;
+    pointer-events: all;
+    cursor: pointer;
+}
+
+.gift-hint.hidden {
+    display: none;
+    opacity: 0;
+}
+
+.gift-hint-text {
+    color: #c41e3a;
+    font-weight: bold;
+    font-size: 1em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes giftHintPulse {
+    0%, 100% { 
+        transform: translateX(-50%) scale(1);
+        opacity: 0.8;
+    }
+    50% { 
+        transform: translateX(-50%) scale(1.05);
+        opacity: 1;
+    }
+}
+
+/* Responsive para el texto del regalo */
+@media screen and (max-width: 768px) {
+    .gift-hint {
+        bottom: 6vh;
+        padding: 10px 18px;
+        margin: 0 10px;
+        max-width: 80vw;
+    }
+
+    .gift-hint-text {
+        font-size: 0.9em;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .gift-hint {
+        bottom: 5vh;
+        padding: 8px 15px;
+        margin: 0 5px;
+    }
+
+    .gift-hint-text {
+        font-size: 0.8em;
+    }
+}/* ===== 
+MEJORAS ADICIONALES PARA MÓVILES ===== */
+
+/* Prevenir zoom en iOS */
+@media screen and (max-width: 768px) {
+    input, textarea, select {
+        font-size: 16px;
+    }
+    
+    /* Mejorar el rendimiento en móviles */
+    .interactive-image {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+    
+    .card-content {
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+    }
+}
+
+/* Mejoras para dispositivos con notch (iPhone X+) */
+@media screen and (max-width: 768px) {
+    .image-container {
+        padding-top: env(safe-area-inset-top, 10px);
+        padding-bottom: env(safe-area-inset-bottom, 10px);
+        padding-left: env(safe-area-inset-left, 10px);
+        padding-right: env(safe-area-inset-right, 10px);
+    }
+    
+    .christmas-card {
+        padding-top: max(5vh, env(safe-area-inset-top, 0px));
+    }
+}
+
+/* Optimización para pantallas de alta densidad */
+@media screen and (max-width: 768px) and (-webkit-min-device-pixel-ratio: 2) {
+    .interactive-image {
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: crisp-edges;
+    }
+}
+
+/* Mejoras para accesibilidad táctil */
+@media (hover: none) and (pointer: coarse) {
+    .interactive-image {
+        min-height: 44px; /* Tamaño mínimo recomendado para touch */
+        min-width: 44px;
+    }
+    
+    .card-content {
+        min-height: 44px;
+    }
+    
+    /* Feedback táctil mejorado */
+    .interactive-image:active {
+        transform: scale(0.95);
+        transition: transform 0.1s ease;
+    }
+    
+    .card-content:active {
+        transform: scale(0.98);
+        transition: transform 0.1s ease;
+    }
+}
+
+/* Animación de la carta entrando de vuelta a la caja - optimizada para móviles */
+@media screen and (max-width: 768px) {
+    .card-return-to-gift {
+        animation: cardReturnToGiftMobile 1s ease-in forwards;
+    }
+
+    @keyframes cardReturnToGiftMobile {
+        0% {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(0.7) translateY(10vh);
+            opacity: 0.7;
+        }
+        100% {
+            transform: scale(0.3) translateY(20vh);
+            opacity: 0;
+        }
+    }
+}
+
+/* Mejoras para dispositivos con pantalla pequeña en altura */
+@media screen and (max-height: 600px) {
+    .interactive-image {
+        max-height: 60vh;
+        max-height: 60dvh;
+    }
+    
+    .card-content {
+        max-height: 50vh;
+        max-height: 50dvh;
+        padding: 15px 20px;
+    }
+    
+    .card-content h2 {
+        font-size: 1.4em;
+        margin-bottom: 8px;
+    }
+    
+    .card-content p {
+        font-size: 0.85em;
+        margin-bottom: 6px;
+    }
+    
+    .card-decoration {
+        font-size: 1.2em;
+        margin: 8px 0;
+    }
+}/
+* ===== CORRECCIÓN PARA BARRAS NEGRAS EN MÓVILES ===== */
+@media screen and (max-width: 768px) {
+    /* Asegurar que no haya barras negras */
+    html, body {
+        width: 100%;
+        height: 100%;
+        overflow-x: hidden;
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Carta que ocupe todo el ancho disponible */
+    .christmas-card {
+        width: 100%;
+        height: 100%;
+        left: 0;
+        right: 0;
+        margin: 0;
+        padding: 0;
+        padding-top: 5vh;
+    }
+    
+    .card-content {
+        margin-left: auto;
+        margin-right: auto;
+        width: calc(100vw - 20px);
+        max-width: calc(100vw - 20px);
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .card-content {
+        width: calc(100vw - 10px);
+        max-width: calc(100vw - 10px);
+        padding: 15px 10px;
+    }
+    
+    .card-content h2 {
+        font-size: 1.4em;
+    }
+    
+    .card-content p {
+        font-size: 0.85em;
+    }
+}
+
+/* Mejora para dispositivos muy anchos en landscape */
+@media screen and (min-width: 769px) and (orientation: landscape) {
+    .card-content {
+        width: auto;
+        max-width: 600px;
+    }
+}

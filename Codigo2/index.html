@@ -1,0 +1,44 @@
+<!--
+# Autor: Andrés Hincapie Ruiz (A.HRZ)
+# Fecha de creación: 24 de diciembre de 2024
+# Programa: Árbol de Navidad 3D Interactivo con Three.js
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Árbol de Navidad 3D</title>
+    <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+    <!-- Contenedor principal para las imágenes -->
+    <div class="image-container">
+        <div class="gift-wrapper">
+            <img id="image4" src="4.png" alt="Regalo cerrado" class="interactive-image active">
+            <img id="image5" src="5.png" alt="Regalo abierto" class="interactive-image hidden">
+        </div>
+    </div>
+
+    <!-- Efecto de serpentina/confeti -->
+    <div id="confetti-container" class="confetti-container"></div>
+
+    <!-- Carta de Feliz Navidad -->
+    <div id="christmas-card" class="christmas-card hidden">
+        <div class="card-content">
+            <h2>🎄 ¡Feliz Navidad! 🎄</h2>
+            <p>Que esta Navidad esté llena de alegría, amor y momentos especiales junto a tus seres queridos.</p>
+            <p>¡Que el nuevo año te traiga muchas bendiciones!</p>
+            <div class="card-decoration">✨🎁✨</div>
+
+        </div>
+    </div>
+
+    <!-- Incluyo la biblioteca Three.js desde CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+body { margin: 0; } /* Elimino los márgenes del body */
+canvas { display: block; } /* Configuro el canvas como bloque */
