@@ -1,7 +1,7 @@
 # 🎄 Colección de Códigos Navideños
 
 Repositorio con 6 proyectos navideños interactivos usando diferentes tecnologías.
-<img width="1296" height="677" alt="image" src="https://github.com/user-attachments/assets/9682bae3-2af1-4670-8a24-e630adcb7f82" />
+<img width="1183" height="666" alt="image" src="https://github.com/user-attachments/assets/34a90e5f-3d3f-4c5c-a5c1-0dba70b072a9" />
 
 ## 📁 Proyectos
 
@@ -102,5 +102,6 @@ Cada proyecto tiene su propio README con:
 ## 🎄 ¡Feliz Navidad!
 
 Disfruta explorando estos proyectos navideños. Siéntete libre de modificarlos y personalizarlos.
+
 
 
